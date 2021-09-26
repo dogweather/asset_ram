@@ -17,6 +17,9 @@ require_relative "asset_ram/version"
 #
 # = AssetRam::Helper.cache(key: site) { stylesheet_link_tag("themes/#{site}", media: nil) }
 #
+# To test and compare if this lib actually improves performance,
+# set the ASSET_RAM_DISABLE env var and it will transparently never cache.
+#
 #
 module AssetRam
   class Error < StandardError; end
@@ -25,16 +28,10 @@ module AssetRam
   # Our own asset helper which memoizes Rails' asset helper calls.
   class Helper
 
-    ##
-    # For testing the gains from caching with this library.
-    # Set to true to disable caching.
-    NO_CACHE = false
-
     @@_cache = {}
 
-
     def self.cache(key: '', &blk)
-      return yield if NO_CACHE
+      return yield if ENV['ASSET_RAM_DISABLE']
 
       cache_key = blk.source_location
       cache_key << key if key.present?
